@@ -66,7 +66,6 @@
  *              Local air pressure at a given local altitude (international barometric hight formula):
  *              pLocal = P0 * (1 - h/H0) ^ K0
  *                        
- * 
  * References   
  */
 
@@ -77,7 +76,6 @@
 #define PIN_HEARTBEAT   LED_BUILTIN  // indicates normal operation with 1 beat/sec or error state with 5 beats / sec
 #define PIN_BOILER      GPIO_NUM_18  // pin to turn on/off the boiler
 #define BME280_I2C_ADDR 0x76
-
 
 extern void heartbeat(uint8_t pin, uint8_t nBeats, uint8_t t, uint8_t duty);
 extern void doMenu();
@@ -90,47 +88,44 @@ extern void toggleThermostat();
 extern void showValues();
 extern void showMenu();
 
-bool heatingIsOn = false; 
-
-SensorData   sensorData; // holds measured and calculated sensor values (see Isensor.h)
-BME280Sensor sensor(BME280_I2C_ADDR, sensorData); // sensor used for thermostat
-
 // Forward declaration of the handler functions for the thermostat
 void processData();
 void turnHeatingOn();
 void turnHeatingOff();
 
-Thermostat thermostat(sensor, processData, turnHeatingOn, turnHeatingOff);
-//const BME280Data& sDataRef = myThermostat.getSensorDataRef();  // const makes access by reference readonly
+bool heatingIsOn = false; 
+SensorData   sensorData; // holds measured and calculated sensor values (see Isensor.h)
+BME280Sensor sensor(BME280_I2C_ADDR, sensorData); // sensor used for thermostat
+Thermostat   thermostat(sensor, processData, turnHeatingOn, turnHeatingOff);
 
-// Called as onDataReady() when refresh intervall expires
+// Called when refresh intervall expires
 void processData()
 {
-  sensor.readSensor();
-  //sensor.printData();
-  //thermostat.printSettings(); 
+  sensor.readSensor(); 
   showValues();
 }
+
 
 // Called as onLowTemp() when the temperature falls below the set limit
 void turnHeatingOn()
 {
   if (! heatingIsOn)
   {
-    log_i("===> switch on heating, it is: %s", heatingIsOn ? "on" : "off");
     digitalWrite(PIN_THERMOSTAT, HIGH);
     heatingIsOn = true;
+    log_i("===> switch on heating, it is now: %s", heatingIsOn ? "on" : "off");
   }
 }
+
 
 // Called as onHighTemp() when the temperature rises above the set limit
 void turnHeatingOff()
 {
   if (heatingIsOn)
   {
-  log_i("===> switch off heating, it is: %s", heatingIsOn ? "on" : "off");
   digitalWrite(PIN_THERMOSTAT, LOW);
   heatingIsOn = false;
+  log_i("===> switch off heating, it is now: %s", heatingIsOn ? "on" : "off");
   }
 }
 
@@ -166,6 +161,7 @@ void setup()
   initThermostat();
   showMenu();
 }
+
 
 void loop() 
 {
